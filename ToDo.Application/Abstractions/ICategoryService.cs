@@ -6,12 +6,12 @@ namespace ToDo.Application.Abstractions
     {
         Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
 
-        Task<CategoryDto?> GetCategoryByIdAsync(int id);
+        Task<CategoryDto?> GetCategoryByIdAsync(Guid id);
 
         Task AddCategoryAsync(CategorySaveDto dto);
 
-        Task UpdateCategoryAsync(int id, CategorySaveDto dto);
+        Task UpdateCategoryAsync(Guid id, CategorySaveDto dto);
 
-        Task DeleteCategoryAsync(int id);
+        Task DeleteCategoryAsync(Guid id);
     }
 }

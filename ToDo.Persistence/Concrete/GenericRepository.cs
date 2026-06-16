@@ -23,7 +23,7 @@ namespace ToDo.Persistence.Concrete
             return await _dbset.ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
             return await _dbset.FindAsync(id);
         }

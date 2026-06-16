@@ -23,8 +23,8 @@ namespace ToDo.API.Controllers
             return Ok(await _categoryService.GetAllCategoriesAsync());
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{id:Guid}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
             return Ok(await _categoryService.GetCategoryByIdAsync(id));
         }
@@ -38,16 +38,16 @@ namespace ToDo.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("update/{id:int}")]
-        public async Task<IActionResult> Update(int id, CategorySaveDto dto)
+        [HttpPut("update/{id:Guid}")]
+        public async Task<IActionResult> Update(Guid id, CategorySaveDto dto)
         {
             await _categoryService.UpdateCategoryAsync(id, dto);
             return StatusCode(204, $"{id} has been updated in category list");
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{id:Guid}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             await _categoryService.DeleteCategoryAsync(id);
             return NoContent();

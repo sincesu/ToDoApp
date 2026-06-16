@@ -1,5 +1,4 @@
-﻿
-namespace ToDo.Application.DTOs.ToDo
+﻿namespace ToDo.Application.DTOs.ToDo
 {
     public class ToDoUpdateDto
     {
@@ -7,6 +6,6 @@ namespace ToDo.Application.DTOs.ToDo
 
         public int? priority { get; set; }
 
-        public int? CategoryId { get; set; }
+        public Guid? CategoryId { get; set; }
     }
 }

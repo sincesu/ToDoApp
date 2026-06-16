@@ -10,10 +10,10 @@ namespace ToDo.Application.Abstractions
 
         public Task<string> LoginAsync(LoginDto dto);
 
-        public Task<AppUserDto> GetByUserIdAsync(int id);
+        public Task<AppUserDto> GetByUserIdAsync(Guid id);
 
-        public Task UpdateAsync(int id, AppUserUpdateDto dto);
+        public Task UpdateAsync(Guid id, AppUserUpdateDto dto);
 
-        public Task DeleteAsync(int id);
+        public Task DeleteAsync(Guid id);
     }
 }

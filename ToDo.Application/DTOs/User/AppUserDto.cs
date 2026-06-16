@@ -3,7 +3,7 @@ namespace ToDo.Application.DTOs.User
 {
     public class AppUserDto
     {
-        public int id { get; set; }
+        public Guid id { get; set; }
 
         public string name { get; set; } = string.Empty;
 

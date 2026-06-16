@@ -7,7 +7,7 @@ namespace ToDo.Application.Extensions
     {
         public static async Task<T> GetOrThrowAsync<T>
             (this IGenericRepository<T> repository,
-            int id) where T : class
+            Guid id) where T : class
         {
             var entity = await repository.GetByIdAsync(id)
                 ?? throw new NotFoundException

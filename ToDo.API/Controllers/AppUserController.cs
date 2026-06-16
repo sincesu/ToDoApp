@@ -33,24 +33,24 @@ namespace ToDo.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        [HttpGet("{id:Guid}")]
+        public async Task<IActionResult> GetByIdAsync(Guid id)
         {
             var dto = await _appUserService.GetByUserIdAsync(id);
             
             return Ok(dto);
         }
 
-        [HttpPatch("update/{id:int}")]
-        public async Task<IActionResult> UpdateAsync(int id, AppUserUpdateDto dto)
+        [HttpPatch("update/{id:Guid}")]
+        public async Task<IActionResult> UpdateAsync(Guid id, AppUserUpdateDto dto)
         {
             await _appUserService.UpdateAsync(id, dto);
 
             return Ok();
         }
 
-        [HttpDelete("delete/{id:int}")]
-        public async Task<IActionResult> DeleteAsync(int id)
+        [HttpDelete("delete/{id:Guid}")]
+        public async Task<IActionResult> DeleteAsync(Guid id)
         {
             await _appUserService.DeleteAsync(id);
             return NoContent();

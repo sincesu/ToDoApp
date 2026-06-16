@@ -1,7 +1,7 @@
 <Solution>
   <Project Path="ToDo.API/ToDo.API.csproj" Id="560e3add-7ccd-4467-bc43-b55ac3cce8f5" />
   <Project Path="ToDo.Application/ToDo.Application.csproj" Id="1736e1e4-7c04-4213-a787-5397e0729ed7" />
-  <Project Path="Todo.Domain/Todo.Domain.csproj" Id="de925f5e-3c30-46d9-9130-2fb57d8642d4" />
+  <Project Path="Todo.Domain/Todo.Domain.csproj" DisplayName="ToDo.Domain" Id="de925f5e-3c30-46d9-9130-2fb57d8642d4" />
   <Project Path="ToDo.Infrastructure/ToDo.Infrastructure.csproj" Id="d026d734-d17f-4a48-a26f-b5bcb626dcb0" />
   <Project Path="ToDo.Persistence/ToDo.Persistence.csproj" Id="17e9ed5c-5c15-428f-9084-24778805f090" />
 </Solution>

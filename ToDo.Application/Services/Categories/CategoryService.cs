@@ -35,7 +35,7 @@ namespace ToDo.Application.Services.Categories
             return dto;
         }
 
-        public async Task<CategoryDto?> GetCategoryByIdAsync(int id)
+        public async Task<CategoryDto?> GetCategoryByIdAsync(Guid id)
         {
             var selected = await _category.GetOrThrowAsync(id);
 
@@ -46,9 +46,6 @@ namespace ToDo.Application.Services.Categories
 
         public async Task AddCategoryAsync(CategorySaveDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.name))
-                throw new BadRequestException("The category name field cannot be left blank");
-
             if (await _category.GetQueryable()
                 .AnyAsync(x => x.name == dto.name))
                 throw new OverlapException("This data already exists");
@@ -60,7 +57,7 @@ namespace ToDo.Application.Services.Categories
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task UpdateCategoryAsync(int id, CategorySaveDto dto)
+        public async Task UpdateCategoryAsync(Guid id, CategorySaveDto dto)
         {
             var entity = await _category.GetOrThrowAsync(id);
 
@@ -68,7 +65,7 @@ namespace ToDo.Application.Services.Categories
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task DeleteCategoryAsync(int id)
+        public async Task DeleteCategoryAsync(Guid id)
         {
             var entity = await _category.GetOrThrowAsync(id);
 

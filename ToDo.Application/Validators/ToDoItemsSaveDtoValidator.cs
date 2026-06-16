@@ -16,8 +16,7 @@ namespace ToDo.Application.Validators
                 .InclusiveBetween(1, 5).WithMessage("The priority value can range from 1 (lowest) to 5 (highest).");
 
             RuleFor(x => x.CategoryId)
-                .NotEmpty().WithMessage("Category ID cannot be empty.")
-                .GreaterThan(0).WithMessage("Category ID must be greater than 0.");
+                .NotEmpty().WithMessage("Category ID cannot be empty.");
         }
     }
 }

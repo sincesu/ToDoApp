@@ -12,7 +12,7 @@ using ToDo.Persistence;
 namespace ToDo.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260615120546_InitialCreate")]
+    [Migration("20260616114429_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,11 +27,9 @@ namespace ToDo.Persistence.Migrations
 
             modelBuilder.Entity("ToDo.Domain.Entities.Categories.Category", b =>
                 {
-                    b.Property<int>("id")
+                    b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
@@ -47,17 +45,15 @@ namespace ToDo.Persistence.Migrations
 
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
                 {
-                    b.Property<int>("id")
+                    b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+                    b.Property<Guid>("AppUserId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("AppUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("completedDate")
                         .HasColumnType("datetime2");
@@ -89,11 +85,9 @@ namespace ToDo.Persistence.Migrations
 
             modelBuilder.Entity("ToDo.Domain.Entities.Users.AppUser", b =>
                 {
-                    b.Property<int>("id")
+                    b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("email")
                         .IsRequired()

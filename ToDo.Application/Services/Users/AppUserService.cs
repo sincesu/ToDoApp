@@ -82,7 +82,7 @@ namespace ToDo.Application.Services.Users
             return tokenString;
         }
 
-        public async Task<AppUserDto> GetByUserIdAsync(int id)
+        public async Task<AppUserDto> GetByUserIdAsync(Guid id)
         {
             var entity = await _appUserRepository.GetOrThrowAsync(id);
 
@@ -91,9 +91,9 @@ namespace ToDo.Application.Services.Users
             return dto;
         }
 
-        public async Task UpdateAsync(int id, AppUserUpdateDto dto)
+        public async Task UpdateAsync(Guid id, AppUserUpdateDto dto)
         {
-            int currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
 
             var item = await _appUserRepository.GetOrThrowAsync(id);
@@ -113,9 +113,9 @@ namespace ToDo.Application.Services.Users
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
-            int currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
 
             var entity = await _appUserRepository.GetOrThrowAsync(id);
