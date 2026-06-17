@@ -1,10 +1,9 @@
-﻿
+﻿using ToDo.Domain.Entities.Common;
+
 namespace ToDo.Domain.Entities.Users
 {
-    public class AppUser
+    public class AppUser : BaseEntity
     {
-        public int id { get; set; }
-
         public string name { get; set; } = string.Empty;
 
         public string password {  get; set; } = string.Empty;
