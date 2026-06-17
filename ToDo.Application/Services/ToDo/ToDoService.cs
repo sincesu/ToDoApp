@@ -121,8 +121,8 @@ namespace ToDo.Application.Services.ToDo
             if (!isAdmin && task.AppUserId != currentUserId)
                 throw new UnAuthorizedAccessException();
 
-            if (!isAdmin && task.State == TaskState.Cancelled)
-                throw new BadRequestException("The status of a canceled task cannot be changed again!");
+            if (!isAdmin && (task.State == TaskState.Cancelled || task.State == TaskState.Inactive || task.State == TaskState.Completed))
+                throw new BadRequestException("The status of a canceled, inactive, or completed task cannot be changed again!");
 
             task.State = item.State;
 
@@ -175,7 +175,7 @@ namespace ToDo.Application.Services.ToDo
             if (!isAdmin && currentUserId != item.AppUserId)
                 throw new UnauthorizedAccessException();
 
-            item.State = TaskState.Cancelled;
+            item.State = TaskState.Inactive;
             item.isDeleted = true;
             await _unitOfWork.CommitAsync();
         }

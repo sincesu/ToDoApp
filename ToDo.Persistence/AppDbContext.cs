@@ -29,6 +29,10 @@ namespace ToDo.Persistence
             modelBuilder.Entity<AppUser>()
                 .HasIndex(u => u.name)
                 .IsUnique();
+
+            modelBuilder.Entity<Category>()
+                .HasIndex(u => u.name)
+                .IsUnique();
         }
     }
 }
