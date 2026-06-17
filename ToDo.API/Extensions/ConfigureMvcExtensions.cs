@@ -1,6 +1,5 @@
-﻿using System.Text.Json.Serialization;
-using FluentValidation.AspNetCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation.AspNetCore;
+using System.Text.Json.Serialization;
 
 namespace ToDo.API.Extensions;
 
@@ -13,8 +12,11 @@ public static class ConfigureMvcExtensions
             .AddJsonOptions(options =>
             {
                 // DTO'da olmayan veri gelince hata fırlatmayı tetikler
-                options.JsonSerializerOptions.UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow;
-                
+                options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+
+                // Enum'ları integer (0, 1, 2) yerine string ("Created", "InProgress") olarak dönüştürür.
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
                 //değeri null olan tüm propertyleri JSON çıktısından tamamen siler.
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });

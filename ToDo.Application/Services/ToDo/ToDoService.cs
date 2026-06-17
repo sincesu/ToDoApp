@@ -8,6 +8,7 @@ using ToDo.Application.DTOs.ToDo;
 using ToDo.Application.DTOs.Filter;
 using ToDo.Application.Extensions;
 using ToDo.Application.Exceptions;
+using ToDo.Domain.Enums;
 
 namespace ToDo.Application.Services.ToDo
 {
@@ -36,7 +37,7 @@ namespace ToDo.Application.Services.ToDo
         public async Task<IEnumerable<ToDoItemsDto>> GetItemsAsync(ToDoFilterDto? filter) //isadmin ve id kontrolü eklenecek hepsine.
         {
             bool isAdmin = _httpContextAccessor.HttpContext!.User.IsInRole("Admin") == true;
-            int currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
 
             var query = _toDoRepository.GetToDosWithCategory(filter)
                 .Where(x => x.isCompleted == false);
@@ -55,7 +56,7 @@ namespace ToDo.Application.Services.ToDo
 
         public async Task AddAsync(ToDoItemsSaveDto item)
         {
-            int currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
 
             await _category.GetOrThrowAsync(item.CategoryId);
 
@@ -64,16 +65,15 @@ namespace ToDo.Application.Services.ToDo
             toDoEntity.AppUserId = currentUserId;
             
             toDoEntity.createdDate = DateTime.Now;
-            toDoEntity.isCompleted = false;
 
             await _toDoRepository.AddAsync(toDoEntity);
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task<ToDoItemsDto?> GetByIdAsync(int id)
+        public async Task<ToDoItemsDto?> GetByIdAsync(Guid id)
         {
             bool isAdmin = _httpContextAccessor.HttpContext!.User.IsInRole("Admin") == true;
-            int currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
 
             var query = _toDoRepository.GetQueryable()
                 .Where(x => x.id == id);
@@ -94,7 +94,7 @@ namespace ToDo.Application.Services.ToDo
         public async Task<IEnumerable<ToDoItemsDto>> GetCompletedItemsAsync(ToDoFilterDto? filter)
         {
             bool isAdmin = _httpContextAccessor.HttpContext!.User.IsInRole("Admin") == true;
-            int currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
 
             var query = _toDoRepository.GetToDosWithCategory(filter)
                 .Where(x => x.isCompleted == true);
@@ -111,9 +111,27 @@ namespace ToDo.Application.Services.ToDo
             return dtoItems;
         }
 
-        public async Task ToMarkAsync(int id)
+        public async Task UpdateState(Guid id, ChangeTaskStateDto item)
         {
-            int currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+            bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
+
+            var task = await _toDoRepository.GetOrThrowAsync(id);
+
+            if (!isAdmin && task.AppUserId != currentUserId)
+                throw new UnAuthorizedAccessException();
+
+            if (!isAdmin && task.State == TaskState.Cancelled)
+                throw new BadRequestException("The status of a canceled task cannot be changed again!");
+
+            task.State = item.State;
+
+            await _unitOfWork.CommitAsync();
+        }
+
+        public async Task ToMarkAsync(Guid id)
+        {
+            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin") == true;
 
             var item = await _toDoRepository.GetOrThrowAsync(id);
@@ -129,9 +147,9 @@ namespace ToDo.Application.Services.ToDo
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task UpdateAsync(int id, ToDoUpdateDto dto)
+        public async Task UpdateAsync(Guid id, ToDoUpdateDto dto)
         {
-            int currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin") == true;
 
             var item = await _toDoRepository.GetOrThrowAsync(id);
@@ -147,9 +165,9 @@ namespace ToDo.Application.Services.ToDo
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
-            int currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin") == true;
 
             var item = await _toDoRepository.GetOrThrowAsync(id);
@@ -157,6 +175,7 @@ namespace ToDo.Application.Services.ToDo
             if (!isAdmin && currentUserId != item.AppUserId)
                 throw new UnauthorizedAccessException();
 
+            item.State = TaskState.Cancelled;
             item.isDeleted = true;
             await _unitOfWork.CommitAsync();
         }

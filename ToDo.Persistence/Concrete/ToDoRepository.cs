@@ -30,6 +30,8 @@ namespace ToDo.Persistence.Concrete
                     query = query.Where(x => x.content.Contains(filter.searchText));
                 if (filter.userId.HasValue)
                     query = query.Where(x => x.AppUserId == filter.userId.Value);
+                if (filter.taskState.HasValue)
+                    query = query.Where(x => x.State == filter.taskState.Value);
                         //LIKE sorgusunu tetikliyor
             }
 

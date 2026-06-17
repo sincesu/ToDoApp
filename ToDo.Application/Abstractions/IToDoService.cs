@@ -7,15 +7,17 @@ namespace ToDo.Application.Abstractions
     {
         Task<IEnumerable<ToDoItemsDto>> GetItemsAsync(ToDoFilterDto? filter);
 
-        Task <ToDoItemsDto?> GetByIdAsync(int id);
+        Task <ToDoItemsDto?> GetByIdAsync(Guid id);
 
         Task AddAsync(ToDoItemsSaveDto item);
 
-        Task ToMarkAsync(int id);
+        Task UpdateState(Guid id, ChangeTaskStateDto dto);
 
-        Task DeleteAsync(int id);
+        Task ToMarkAsync(Guid id);
 
-        Task UpdateAsync(int id, ToDoUpdateDto dto);
+        Task DeleteAsync(Guid id);
+
+        Task UpdateAsync(Guid id, ToDoUpdateDto dto);
 
         Task <IEnumerable<ToDoItemsDto>> GetCompletedItemsAsync(ToDoFilterDto? filter);
     }

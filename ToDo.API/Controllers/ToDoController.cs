@@ -32,15 +32,15 @@ namespace ToDo.API.Controllers
             return StatusCode(201, $"{toDoItem.content} has been created");
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{id:Guid}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
             var item = await _toDoService.GetByIdAsync(id);
             return Ok(item);
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{id:Guid}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             await _toDoService.DeleteAsync(id);
             return NoContent();
@@ -54,15 +54,23 @@ namespace ToDo.API.Controllers
             return Ok(completedItems);
         }
  
-        [HttpPut("mark/{id}")]
-        public async Task<IActionResult> ToMark(int id)
+        [HttpPut("mark/{id:Guid}")]
+        public async Task<IActionResult> ToMark(Guid id)
         {
             await _toDoService.ToMarkAsync(id);
             return Ok();
         }
 
-        [HttpPatch("update/{id:int}")]
-        public async Task<IActionResult> Update(int id, ToDoUpdateDto dto)
+        [HttpPatch("state/{id:Guid}")]
+        public async Task<IActionResult> UpdateState(Guid id, [FromBody] ChangeTaskStateDto dto)
+        {
+            await _toDoService.UpdateState(id, dto);
+
+            return NoContent();
+        }
+
+        [HttpPatch("update/{id:Guid}")]
+        public async Task<IActionResult> Update(Guid id, ToDoUpdateDto dto)
         {
             await _toDoService.UpdateAsync(id, dto);
 
