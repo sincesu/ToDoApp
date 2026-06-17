@@ -1,4 +1,5 @@
 ﻿using ToDo.Domain.Entities.Common;
+using ToDo.Domain.Entities.Comments;
 
 namespace ToDo.Domain.Entities.Users
 {
@@ -12,6 +13,6 @@ namespace ToDo.Domain.Entities.Users
 
         public string email { get; set; } = string.Empty;
 
-        public bool isDeleted { get; set; }
+        public ICollection<Comment> Comments { get; set; } = new HashSet<Comment>();
     }
 }

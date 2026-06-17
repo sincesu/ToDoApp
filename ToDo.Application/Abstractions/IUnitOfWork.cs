@@ -1,5 +1,6 @@
 ﻿using ToDo.Domain.Entities.Users;
 using ToDo.Domain.Entities.Categories;
+using ToDo.Domain.Entities.Comments;
 
 namespace ToDo.Application.Abstractions
 {
@@ -10,6 +11,8 @@ namespace ToDo.Application.Abstractions
         IGenericRepository<Category> Category {  get; }
 
         IGenericRepository<AppUser> AppUser { get; }
+
+        IGenericRepository<Comment> Comment { get; }
          
         Task<int> CommitAsync();
     }

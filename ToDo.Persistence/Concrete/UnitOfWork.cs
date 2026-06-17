@@ -1,6 +1,7 @@
 ﻿
 using ToDo.Application.Abstractions;
 using ToDo.Domain.Entities.Categories;
+using ToDo.Domain.Entities.Comments;
 using ToDo.Domain.Entities.Users;
 
 namespace ToDo.Persistence.Concrete
@@ -13,6 +14,8 @@ namespace ToDo.Persistence.Concrete
         private ToDoRepository? _toDoRepository;
         private GenericRepository<Category>? _category;
         private GenericRepository<AppUser>? _user;
+        private GenericRepository<Comment>? _comment;
+        
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
@@ -32,6 +35,11 @@ namespace ToDo.Persistence.Concrete
         public IGenericRepository<AppUser> AppUser
         {
             get { return _user ??= new GenericRepository<AppUser>(_context); }
+        }
+
+        public IGenericRepository<Comment> Comment
+        {
+            get { return _comment ??= new GenericRepository<Comment>(_context); }
         }
 
         //tek noktadan savechanges çağırma

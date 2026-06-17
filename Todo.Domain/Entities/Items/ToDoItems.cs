@@ -1,6 +1,7 @@
 ﻿using ToDo.Domain.Entities.Categories;
 using ToDo.Domain.Entities.Common;
 using ToDo.Domain.Entities.Users;
+using ToDo.Domain.Entities.Comments;
 using ToDo.Domain.Enums;
 
 namespace ToDo.Domain.Entities.Items
@@ -10,8 +11,6 @@ namespace ToDo.Domain.Entities.Items
         public string content { get; set; } = string.Empty;
 
         public int priority { get; set; }
-
-        public bool isDeleted { get; set; }
 
         public bool isCompleted { get; set; } = false;
 
@@ -28,5 +27,7 @@ namespace ToDo.Domain.Entities.Items
         public AppUser? AppUser { get; set; }
 
         public TaskState State { get; set; } = TaskState.Created;
+
+        public ICollection<Comment> Comments { get; set; } = new HashSet<Comment>();
     }
 }

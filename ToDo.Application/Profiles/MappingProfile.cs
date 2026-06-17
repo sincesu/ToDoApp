@@ -5,6 +5,8 @@ using ToDo.Domain.Entities.Items;
 using ToDo.Application.DTOs.ToDo;
 using ToDo.Domain.Entities.Categories;
 using ToDo.Application.DTOs.Category;
+using ToDo.Application.DTOs.Comment;
+using ToDo.Domain.Entities.Comments;
 
 namespace ToDo.Application.Profiles
 {
@@ -18,6 +20,8 @@ namespace ToDo.Application.Profiles
             CreateMap<CategorySaveDto, Category>();
             CreateMap<AppUser, AppUserDto>();
             CreateMap<AppUserSaveDto, AppUser>();
+            CreateMap<CommentSaveDto, Comment>();
+            CreateMap<Comment, CommentDto>();
             CreateMap<ToDoUpdateDto, ToDoItems>()
             .ForMember(dest => dest.CategoryId, opt => opt.Condition(src => src.CategoryId.HasValue))
             .ForMember(dest => dest.priority, opt => opt.Condition(src => src.priority.HasValue))
