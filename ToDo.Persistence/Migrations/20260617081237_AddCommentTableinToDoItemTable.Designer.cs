@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ToDo.Persistence;
 
@@ -11,9 +12,11 @@ using ToDo.Persistence;
 namespace ToDo.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260617081237_AddCommentTableinToDoItemTable")]
+    partial class AddCommentTableinToDoItemTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,8 +41,7 @@ namespace ToDo.Persistence.Migrations
                     b.HasKey("id");
 
                     b.HasIndex("name")
-                        .IsUnique()
-                        .HasFilter("isDeleted = 0");
+                        .IsUnique();
 
                     b.ToTable("Category");
                 });
@@ -50,10 +52,7 @@ namespace ToDo.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AppUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ToDoItemsId")
+                    b.Property<Guid?>("ToDoItemsid")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("content")
@@ -68,9 +67,7 @@ namespace ToDo.Persistence.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("AppUserId");
-
-                    b.HasIndex("ToDoItemsId");
+                    b.HasIndex("ToDoItemsid");
 
                     b.ToTable("Comment");
                 });
@@ -146,29 +143,16 @@ namespace ToDo.Persistence.Migrations
                     b.HasKey("id");
 
                     b.HasIndex("name")
-                        .IsUnique()
-                        .HasFilter("isDeleted = 0");
+                        .IsUnique();
 
                     b.ToTable("AppUser");
                 });
 
             modelBuilder.Entity("ToDo.Domain.Entities.Comments.Comment", b =>
                 {
-                    b.HasOne("ToDo.Domain.Entities.Users.AppUser", "AppUser")
+                    b.HasOne("ToDo.Domain.Entities.Items.ToDoItems", null)
                         .WithMany("Comments")
-                        .HasForeignKey("AppUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ToDo.Domain.Entities.Items.ToDoItems", "ToDoItems")
-                        .WithMany("Comments")
-                        .HasForeignKey("ToDoItemsId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("AppUser");
-
-                    b.Navigation("ToDoItems");
+                        .HasForeignKey("ToDoItemsid");
                 });
 
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
@@ -191,11 +175,6 @@ namespace ToDo.Persistence.Migrations
                 });
 
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
-                {
-                    b.Navigation("Comments");
-                });
-
-            modelBuilder.Entity("ToDo.Domain.Entities.Users.AppUser", b =>
                 {
                     b.Navigation("Comments");
                 });
