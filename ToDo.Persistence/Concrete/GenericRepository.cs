@@ -14,10 +14,18 @@ namespace ToDo.Persistence.Concrete
             _dbset = _context.Set<T>();
         }
 
-        public IQueryable<T> GetQueryable()
+        //uptdate ve deletelerde entity'i efcore takip edebilsin diye asqueryable dönüyoz.
+        //get işlemlerinde sadece okuma yapıyoz diye asnoTracking yapıyoz.
+        public IQueryable<T> GetQueryable(bool asNoTracking=false)
         {
-            return _dbset.AsNoTracking();
+            var query = _dbset.AsQueryable();
+
+            if (asNoTracking)
+                query=query.AsNoTracking();
+
+            return query; 
         }
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbset.ToListAsync();

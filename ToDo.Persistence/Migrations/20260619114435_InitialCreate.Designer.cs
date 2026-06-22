@@ -12,7 +12,7 @@ using ToDo.Persistence;
 namespace ToDo.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260616114429_InitialCreate")]
+    [Migration("20260619114435_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -36,11 +36,46 @@ namespace ToDo.Persistence.Migrations
 
                     b.Property<string>("name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("id");
 
+                    b.HasIndex("name")
+                        .IsUnique()
+                        .HasFilter("isDeleted = 0");
+
                     b.ToTable("Category");
+                });
+
+            modelBuilder.Entity("ToDo.Domain.Entities.Comments.Comment", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AppUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ToDoItemsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("dateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("AppUserId");
+
+                    b.HasIndex("ToDoItemsId");
+
+                    b.ToTable("Comment");
                 });
 
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
@@ -54,6 +89,9 @@ namespace ToDo.Persistence.Migrations
 
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("completedDate")
                         .HasColumnType("datetime2");
@@ -111,9 +149,29 @@ namespace ToDo.Persistence.Migrations
                     b.HasKey("id");
 
                     b.HasIndex("name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("isDeleted = 0");
 
                     b.ToTable("AppUser");
+                });
+
+            modelBuilder.Entity("ToDo.Domain.Entities.Comments.Comment", b =>
+                {
+                    b.HasOne("ToDo.Domain.Entities.Users.AppUser", "AppUser")
+                        .WithMany("Comments")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ToDo.Domain.Entities.Items.ToDoItems", "ToDoItems")
+                        .WithMany("Comments")
+                        .HasForeignKey("ToDoItemsId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("ToDoItems");
                 });
 
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
@@ -133,6 +191,16 @@ namespace ToDo.Persistence.Migrations
                     b.Navigation("AppUser");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
+                {
+                    b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("ToDo.Domain.Entities.Users.AppUser", b =>
+                {
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }
