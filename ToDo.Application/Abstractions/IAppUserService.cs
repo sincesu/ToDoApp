@@ -6,6 +6,8 @@ namespace ToDo.Application.Abstractions
     {
         public Task<IEnumerable<AppUserDto>> GetAllUsersAsync();
 
+        public Task<IEnumerable<UserTasksDto>> GetAllTasksAsync();
+
         public Task AddUserAsync(AppUserSaveDto dto);
 
         public Task<string> LoginAsync(LoginDto dto);

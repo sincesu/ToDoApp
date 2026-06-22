@@ -39,7 +39,7 @@ namespace ToDo.Application.Services.Users
             _httpContextAccessor = httpContextAccessor;
             _commentRepository = commentRepository;
         }
-
+            
         public async Task<IEnumerable<AppUserDto>> GetAllUsersAsync()
         {
             var entity = await _appUserRepository.GetAllAsync();
@@ -47,6 +47,20 @@ namespace ToDo.Application.Services.Users
             var allUsers = _mapper.Map<IEnumerable<AppUserDto>>(entity);
 
             return allUsers;
+        }
+
+        public async Task<IEnumerable<UserTasksDto>> GetAllTasksAsync()
+        {
+            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+
+            var entityList = await _appUserRepository.GetQueryable()
+                .Include(x => x.ToDoItems)
+                .Where(x => x.id == currentUserId)
+                .ToListAsync();
+
+            var dtoList = _mapper.Map<IEnumerable<UserTasksDto>>(entityList);
+
+            return dtoList;
         }
 
         public async Task AddUserAsync(AppUserSaveDto dto)

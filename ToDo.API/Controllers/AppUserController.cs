@@ -24,6 +24,12 @@ namespace ToDo.API.Controllers
             return Ok(await _appUserService.GetAllUsersAsync());
         }
 
+        [HttpGet("me/tasks")]
+        public async Task<IActionResult> GetTasks()
+        {
+            return Ok(await _appUserService.GetAllTasksAsync());
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpPost("adduser")]
         public async Task<IActionResult> AddUserAsync(AppUserSaveDto dto)
