@@ -22,6 +22,7 @@ namespace ToDo.Application.Profiles
             CreateMap<AppUserSaveDto, AppUser>();
             CreateMap<CommentSaveDto, Comment>();
             CreateMap<Comment, CommentDto>();
+            CreateMap<CommentUpdateDto, Comment>();
             CreateMap<ToDoUpdateDto, ToDoItems>()
             .ForMember(dest => dest.CategoryId, opt => opt.Condition(src => src.CategoryId.HasValue))
             .ForMember(dest => dest.priority, opt => opt.Condition(src => src.priority.HasValue))

@@ -3,7 +3,7 @@ namespace ToDo.Application.Abstractions
 {
     public interface IGenericRepository<T> where T : class
     {
-        IQueryable<T> GetQueryable();
+        IQueryable<T> GetQueryable(bool asNoTracking = false);
         Task<IEnumerable<T>> GetAllAsync();
         Task<T?> GetByIdAsync(Guid id);
         Task AddAsync(T entity);

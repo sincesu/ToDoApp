@@ -6,14 +6,6 @@ namespace ToDo.Application.Abstractions
 {
     public interface IUnitOfWork : IDisposable
     {
-        IToDoRepository ToDoRepository { get; }
-        
-        IGenericRepository<Category> Category {  get; }
-
-        IGenericRepository<AppUser> AppUser { get; }
-
-        IGenericRepository<Comment> Comment { get; }
-         
         Task<int> CommitAsync();
     }
 }

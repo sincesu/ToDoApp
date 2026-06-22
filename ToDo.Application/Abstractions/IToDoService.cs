@@ -15,9 +15,9 @@ namespace ToDo.Application.Abstractions
 
         Task ToMarkAsync(Guid id);
 
-        Task DeleteAsync(Guid id);
-
         Task UpdateAsync(Guid id, ToDoUpdateDto dto);
+        
+        Task DeleteAllCommentsOfTaskAsync(Guid id);
 
         Task <IEnumerable<ToDoItemsDto>> GetCompletedItemsAsync(ToDoFilterDto? filter);
     }

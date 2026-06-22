@@ -1,8 +1,7 @@
 ﻿namespace ToDo.Application.DTOs.Comment
 {
-    public class CommentSaveDto
+    public class CommentUpdateDto
     {
         public required string Content { get; set; }
-        public Guid ToDoItemsId { get; set; }
     }
 }

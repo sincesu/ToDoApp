@@ -8,6 +8,8 @@ using ToDo.Domain.Entities.Users;
 using ToDo.Application.Extensions;
 
 using BCryptTool = BCrypt.Net.BCrypt;
+using System.Security.Cryptography;
+using ToDo.Domain.Entities.Comments;
 
 namespace ToDo.Application.Services.Users
 {
@@ -17,6 +19,7 @@ namespace ToDo.Application.Services.Users
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericRepository<AppUser> _appUserRepository;
         private readonly IToDoRepository _toDoRepository;
+        private readonly IGenericRepository<Comment> _commentRepository;
         private readonly ITokenService _tokenService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -25,7 +28,8 @@ namespace ToDo.Application.Services.Users
             , IGenericRepository<AppUser> appUserRepository
             , IToDoRepository toDoRepository
             , ITokenService tokenService
-            , IHttpContextAccessor httpContextAccessor)
+            , IHttpContextAccessor httpContextAccessor
+            , IGenericRepository<Comment> commentRepository)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -33,6 +37,7 @@ namespace ToDo.Application.Services.Users
             _toDoRepository = toDoRepository;
             _tokenService = tokenService;
             _httpContextAccessor = httpContextAccessor;
+            _commentRepository = commentRepository;
         }
 
         public async Task<IEnumerable<AppUserDto>> GetAllUsersAsync()
@@ -46,7 +51,7 @@ namespace ToDo.Application.Services.Users
 
         public async Task AddUserAsync(AppUserSaveDto dto)
         {
-            if (await _appUserRepository.GetQueryable()
+            if (await _appUserRepository.GetQueryable(true)
                 .AnyAsync(x => x.name == dto.name))
                 throw new OverlapException("That username is already in use, choose a different username");
 
@@ -63,7 +68,7 @@ namespace ToDo.Application.Services.Users
 
         public async Task<string> LoginAsync(LoginDto dto)
         {
-            var user = await _appUserRepository.GetQueryable()
+            var user = await _appUserRepository.GetQueryable(true)
                 .FirstOrDefaultAsync(x => x.name == dto.name);
             //firstordefaultasync metotu büyük/küçük harf dikkat etmez
             if (user == null)
@@ -101,7 +106,9 @@ namespace ToDo.Application.Services.Users
             if (isAdmin == false && currentUserId != item.id)
                 throw new UnauthorizedAccessException();
 
-            if (await _appUserRepository.GetQueryable().AnyAsync(x => x.name == dto.name))
+            //İsmi eşleşen ama ID'si GÜNCELLENEN KİŞİ OLMAYAN başka biri var mı
+            if (await _appUserRepository.GetQueryable(true)
+                .AnyAsync(x => x.name == dto.name && x.id != id))
                 throw new OverlapException("This user already exists");
 
             _mapper.Map(dto, item);
@@ -109,28 +116,38 @@ namespace ToDo.Application.Services.Users
             if (!string.IsNullOrWhiteSpace(dto.password))
                 item.password = BCryptTool.HashPassword(dto.password);
 
-            await _appUserRepository.UpdateAsync(item);
             await _unitOfWork.CommitAsync();
         }
 
+
         public async Task DeleteAsync(Guid id)
         {
-            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
 
-            var entity = await _appUserRepository.GetOrThrowAsync(id);
+            var user = await _appUserRepository.GetQueryable()
+            .Include(x => x.Comments)
+            .FirstOrDefaultAsync(x => x.id == id);
+        
+            if (user == null)
+                throw new NotFoundException("Böyle bi user yok");
 
-            if (isAdmin == false && currentUserId != entity.id)
-                throw new UnauthorizedAccessException();
+            if (!isAdmin && currentUserId != user.id)
+                throw new UnauthorizedAccessException("Yetkin yok knk");
 
             var relatedToDos = await _toDoRepository.GetQueryable()
-                .Where(x => x.AppUserId == id)
-                .ToListAsync();
+            .Where(x => x.AppUserId == user.id)
+            .ToListAsync();
 
-            foreach (var ToDo in relatedToDos)
-                ToDo.isDeleted = true;
+            foreach (var todo in relatedToDos)
+                todo.isDeleted = true;
 
-            entity.isDeleted = true;
+            foreach (var comment in user.Comments)
+                comment.isDeleted = true;
+
+            user.isDeleted = true;
+            //await _appUserRepository.UpdateAsync(user);
+            
             await _unitOfWork.CommitAsync();
         }
     }

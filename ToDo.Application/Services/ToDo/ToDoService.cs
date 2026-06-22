@@ -9,6 +9,7 @@ using ToDo.Application.DTOs.Filter;
 using ToDo.Application.Extensions;
 using ToDo.Application.Exceptions;
 using ToDo.Domain.Enums;
+using ToDo.Domain.Entities.Comments;
 
 namespace ToDo.Application.Services.ToDo
 {
@@ -20,18 +21,22 @@ namespace ToDo.Application.Services.ToDo
         private readonly IGenericRepository<Category> _category;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        private readonly IGenericRepository<Comment> _commentRepository; 
+
         public ToDoService(
             IMapper mapper
             , IUnitOfWork unitOfWork
             , IToDoRepository toDoRepository
             , IGenericRepository<Category> category
-            , IHttpContextAccessor httpContextAccessor)
+            , IHttpContextAccessor httpContextAccessor
+            , IGenericRepository<Comment> commentRepository)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _toDoRepository = toDoRepository;
             _category = category;
             _httpContextAccessor = httpContextAccessor;
+            _commentRepository = commentRepository;
         }
 
         public async Task<IEnumerable<ToDoItemsDto>> GetItemsAsync(ToDoFilterDto? filter) //isadmin ve id kontrolü eklenecek hepsine.
@@ -75,7 +80,7 @@ namespace ToDo.Application.Services.ToDo
             bool isAdmin = _httpContextAccessor.HttpContext!.User.IsInRole("Admin") == true;
             Guid currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
 
-            var query = _toDoRepository.GetQueryable()
+            var query = _toDoRepository.GetQueryable(true)
                 .Where(x => x.id == id);
 
             if (isAdmin)
@@ -143,7 +148,6 @@ namespace ToDo.Application.Services.ToDo
 
             item.completedDate = item.isCompleted ? DateTime.Now : null;
 
-            await _toDoRepository.UpdateAsync(item);
             await _unitOfWork.CommitAsync();
         }
 
@@ -164,20 +168,71 @@ namespace ToDo.Application.Services.ToDo
 
             await _unitOfWork.CommitAsync();
         }
-
-        public async Task DeleteAsync(Guid id)
+        
+        //controller'ında [Authorize(Roles="Admin")] olucak.
+        public async Task DeleteAllCommentsOfTaskAsync(Guid id)
         {
-            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
-            bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin") == true;
+            var task = await _toDoRepository.GetQueryable()
+            .Include(x => x.Comments)
+            .FirstOrDefaultAsync(x => x.id == id);
 
-            var item = await _toDoRepository.GetOrThrowAsync(id);
+            if (task == null)
+                throw new NotFoundException("Böyle bi task yok");
 
-            if (!isAdmin && currentUserId != item.AppUserId)
-                throw new UnauthorizedAccessException();
+            foreach (var comment in task.Comments)
+                comment.isDeleted = true;
+                //await _commentRepository.UpdateAsync(comment);
 
-            item.State = TaskState.Inactive;
-            item.isDeleted = true;
+            task.State = TaskState.Inactive;
+            task.isDeleted = true;
+            //await _toDoRepository.UpdateAsync(task);
+
             await _unitOfWork.CommitAsync();
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }
+
+        /*public async Task<IEnumerable<ToDoItemsDto>> GetCompletedTasksByCategoryAsync(Guid categoryId)
+        {
+            var listEntity = await _toDoRepository.GetQueryable()
+            .Where(x => x.CategoryId == categoryId && x.isCompleted == false)
+            .ToListAsync();
+
+            var list = _mapper.Map<IEnumerable<ToDoItemsDto>>(listEntity);
+            return list;
+        }*/
