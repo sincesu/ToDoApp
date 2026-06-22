@@ -20,6 +20,7 @@ namespace ToDo.Application.Services.ToDo
         private readonly IToDoRepository _toDoRepository;
         private readonly IGenericRepository<Category> _category;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAppUserService _appUserService;
 
         private readonly IGenericRepository<Comment> _commentRepository; 
 
@@ -29,7 +30,8 @@ namespace ToDo.Application.Services.ToDo
             , IToDoRepository toDoRepository
             , IGenericRepository<Category> category
             , IHttpContextAccessor httpContextAccessor
-            , IGenericRepository<Comment> commentRepository)
+            , IGenericRepository<Comment> commentRepository
+            , IAppUserService appUserService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -37,6 +39,7 @@ namespace ToDo.Application.Services.ToDo
             _category = category;
             _httpContextAccessor = httpContextAccessor;
             _commentRepository = commentRepository;
+            _appUserService = appUserService;
         }
 
         public async Task<IEnumerable<ToDoItemsDto>> GetItemsAsync(ToDoFilterDto? filter) //isadmin ve id kontrolü eklenecek hepsine.
@@ -59,22 +62,6 @@ namespace ToDo.Application.Services.ToDo
             return dtoItems;
         }
 
-        public async Task AddAsync(ToDoItemsSaveDto item)
-        {
-            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
-
-            await _category.GetOrThrowAsync(item.CategoryId);
-
-            var toDoEntity = _mapper.Map<ToDoItems>(item);
-
-            toDoEntity.AppUserId = currentUserId;
-            
-            toDoEntity.createdDate = DateTime.Now;
-
-            await _toDoRepository.AddAsync(toDoEntity);
-            await _unitOfWork.CommitAsync();
-        }
-
         public async Task<ToDoItemsDto?> GetByIdAsync(Guid id)
         {
             bool isAdmin = _httpContextAccessor.HttpContext!.User.IsInRole("Admin") == true;
@@ -94,6 +81,43 @@ namespace ToDo.Application.Services.ToDo
             var dtoItems = _mapper.Map<ToDoItemsDto>(item);
 
             return dtoItems;
+        }
+
+        public async Task AssignTask(AssignTaskDto dto)
+        {
+            var task = await _toDoRepository.GetQueryable()
+            .Include(x => x.AppUser)
+            .FirstOrDefaultAsync(x => x.id == dto.ToDoItemsId);
+
+            if (task == null)
+                throw new NotFoundException("Task not found task list");
+
+            // zaten user yoksa appuserservice içinde exception fırlatacak.
+            await _appUserService.GetByUserIdAsync(dto.AssignedToUserId);
+
+            _mapper.Map(dto, task);
+           
+            task.State = TaskState.InProgress;
+            task.AppUserId = dto.AssignedToUserId;
+
+            await _unitOfWork.CommitAsync();
+        }
+
+
+        public async Task AddAsync(ToDoItemsSaveDto item)
+        {
+            Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+
+            await _category.GetOrThrowAsync(item.CategoryId);
+
+            var toDoEntity = _mapper.Map<ToDoItems>(item);
+
+            toDoEntity.AppUserId = currentUserId;
+            
+            toDoEntity.createdDate = DateTime.Now;
+
+            await _toDoRepository.AddAsync(toDoEntity);
+            await _unitOfWork.CommitAsync();
         }
         
         public async Task<IEnumerable<ToDoItemsDto>> GetCompletedItemsAsync(ToDoFilterDto? filter)

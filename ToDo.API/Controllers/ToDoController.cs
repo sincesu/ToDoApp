@@ -24,19 +24,28 @@ namespace ToDo.API.Controllers
             return Ok(await _toDoService.GetItemsAsync(filter));
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Add(ToDoItemsSaveDto toDoItem)
-        {
-            await _toDoService.AddAsync(toDoItem);
-
-            return StatusCode(201, $"{toDoItem.content} has been created");
-        }
-
         [HttpGet("{id:Guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var item = await _toDoService.GetByIdAsync(id);
             return Ok(item);
+        }
+
+        [HttpPatch("assigntask")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignTask(AssignTaskDto dto)
+        {
+            await _toDoService.AssignTask(dto);
+            return Ok();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Add(ToDoItemsSaveDto toDoItem)
+        {
+            await _toDoService.AddAsync(toDoItem);
+
+            return StatusCode(201, $"{toDoItem.content} has been created");
         }
 
         [HttpGet("completed")]

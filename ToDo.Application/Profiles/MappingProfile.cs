@@ -23,6 +23,7 @@ namespace ToDo.Application.Profiles
             CreateMap<CommentSaveDto, Comment>();
             CreateMap<Comment, CommentDto>();
             CreateMap<CommentUpdateDto, Comment>();
+            CreateMap<AssignTaskDto, ToDoItems>();
             CreateMap<AppUser, UserTasksDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.ToDoItems));
             CreateMap<ToDoUpdateDto, ToDoItems>()

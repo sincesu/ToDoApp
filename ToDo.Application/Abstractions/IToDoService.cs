@@ -9,6 +9,8 @@ namespace ToDo.Application.Abstractions
 
         Task <ToDoItemsDto?> GetByIdAsync(Guid id);
 
+        Task AssignTask(AssignTaskDto dto);
+
         Task AddAsync(ToDoItemsSaveDto item);
 
         Task UpdateState(Guid id, ChangeTaskStateDto dto);
