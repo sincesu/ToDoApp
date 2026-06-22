@@ -39,13 +39,6 @@ namespace ToDo.API.Controllers
             return Ok(item);
         }
 
-        [HttpDelete("{id:Guid}")]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            await _toDoService.DeleteAsync(id);
-            return NoContent();
-        }
-
         [HttpGet("completed")]
         public async Task<IActionResult> GetCompleted([FromQuery] ToDoFilterDto filter)
         {
@@ -61,6 +54,14 @@ namespace ToDo.API.Controllers
             return Ok();
         }
 
+        [HttpPatch("update/{id:Guid}")]
+        public async Task<IActionResult> Update(Guid id, ToDoUpdateDto dto)
+        {
+            await _toDoService.UpdateAsync(id, dto);
+
+            return Ok();
+        }
+
         [HttpPatch("state/{id:Guid}")]
         public async Task<IActionResult> UpdateState(Guid id, [FromBody] ChangeTaskStateDto dto)
         {
@@ -69,12 +70,11 @@ namespace ToDo.API.Controllers
             return NoContent();
         }
 
-        [HttpPatch("update/{id:Guid}")]
-        public async Task<IActionResult> Update(Guid id, ToDoUpdateDto dto)
+        [HttpDelete("{id:Guid}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
-            await _toDoService.UpdateAsync(id, dto);
-
-            return Ok();
+            await _toDoService.DeleteAllCommentsOfTaskAsync(id);
+            return NoContent();
         }
 
     }

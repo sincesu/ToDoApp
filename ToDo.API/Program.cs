@@ -6,6 +6,7 @@ using ToDo.API.Middlewares;
 using ToDo.Application.Abstractions;
 using ToDo.Application.Profiles;
 using ToDo.Application.Services.Categories;
+using ToDo.Application.Services.Comments;
 using ToDo.Application.Services.ToDo;
 using ToDo.Application.Services.Users;
 using ToDo.Infrastructure;
@@ -52,12 +53,16 @@ builder.Services.AddScoped<IToDoService, ToDoService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAppUserService, AppUserService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 
-//authentication 
+//authentication
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 //.Net Core'un kendi problemdetails servisini projeye dahil ettim
 builder.Services.AddProblemDetails();
+
+//swagger'da authorize ayarı yapabilmek için yaptığımız ekleme
+builder.Services.AddSwaggerConfiguration();
 
 // HTTP isteğinin (HttpContext) bilgilerine, Controller dışında da erişebilmek için kullanıyoruz.
 builder.Services.AddHttpContextAccessor();
