@@ -39,6 +39,14 @@ namespace ToDo.API.Controllers
             return Ok();
         }
 
+        [HttpGet("history/{id:Guid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetTaskHistories(Guid id)
+        {
+            var histories = await _toDoService.GetTaskHistoriesAsync(id);
+            return Ok(histories);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Add(ToDoItemsSaveDto toDoItem)
@@ -57,9 +65,10 @@ namespace ToDo.API.Controllers
         }
  
         [HttpPut("mark/{id:Guid}")]
-        public async Task<IActionResult> ToMark(Guid id)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToMarkForCompleted(Guid id)
         {
-            await _toDoService.ToMarkAsync(id);
+            await _toDoService.ToMarkForCompletedAsync(id);
             return Ok();
         }
 
@@ -80,6 +89,7 @@ namespace ToDo.API.Controllers
         }
 
         [HttpDelete("{id:Guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _toDoService.DeleteAllCommentsOfTaskAsync(id);

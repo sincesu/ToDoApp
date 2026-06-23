@@ -3,6 +3,7 @@ using ToDo.Domain.Entities.Items;
 using ToDo.Domain.Entities.Users;
 using ToDo.Domain.Entities.Categories;
 using ToDo.Domain.Entities.Comments;
+using ToDo.Domain.Entities.Histories;
 
 namespace ToDo.Persistence
 {
@@ -21,6 +22,8 @@ namespace ToDo.Persistence
 
         public DbSet<Comment> Comment { get; set; }
 
+        public DbSet<TaskHistory> TaskHistory { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -28,6 +31,7 @@ namespace ToDo.Persistence
             modelBuilder.Entity<ToDoItems>().HasQueryFilter(x => x.isDeleted == false);
             modelBuilder.Entity<Category>().HasQueryFilter(x => x.isDeleted == false);
             modelBuilder.Entity<AppUser>().HasQueryFilter(x => x.isDeleted == false);
+            modelBuilder.Entity<TaskHistory>().HasQueryFilter(x => !x.isDeleted);
             modelBuilder.Entity<Comment>()
             .HasQueryFilter(x =>
                 !x.isDeleted 

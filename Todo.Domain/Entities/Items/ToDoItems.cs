@@ -1,7 +1,8 @@
 ﻿using ToDo.Domain.Entities.Categories;
-using ToDo.Domain.Entities.Common;
-using ToDo.Domain.Entities.Users;
 using ToDo.Domain.Entities.Comments;
+using ToDo.Domain.Entities.Common;
+using ToDo.Domain.Entities.Histories;
+using ToDo.Domain.Entities.Users;
 using ToDo.Domain.Enums;
 
 namespace ToDo.Domain.Entities.Items
@@ -29,5 +30,7 @@ namespace ToDo.Domain.Entities.Items
         public TaskState State { get; set; } = TaskState.Created;
 
         public ICollection<Comment> Comments { get; set; } = new HashSet<Comment>();
+
+        public ICollection<TaskHistory> TaskHistories { get; set; } = new HashSet<TaskHistory>();
     }
 }

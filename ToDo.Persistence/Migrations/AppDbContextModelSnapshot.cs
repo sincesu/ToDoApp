@@ -75,6 +75,37 @@ namespace ToDo.Persistence.Migrations
                     b.ToTable("Comment");
                 });
 
+            modelBuilder.Entity("ToDo.Domain.Entities.Histories.TaskHistory", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChangeByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NewState")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OldState")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ToDoItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("ToDoItemId");
+
+                    b.ToTable("TaskHistory");
+                });
+
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
                 {
                     b.Property<Guid>("id")
@@ -171,10 +202,21 @@ namespace ToDo.Persistence.Migrations
                     b.Navigation("ToDoItems");
                 });
 
+            modelBuilder.Entity("ToDo.Domain.Entities.Histories.TaskHistory", b =>
+                {
+                    b.HasOne("ToDo.Domain.Entities.Items.ToDoItems", "ToDoItem")
+                        .WithMany("TaskHistories")
+                        .HasForeignKey("ToDoItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ToDoItem");
+                });
+
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
                 {
                     b.HasOne("ToDo.Domain.Entities.Users.AppUser", "AppUser")
-                        .WithMany()
+                        .WithMany("ToDoItems")
                         .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -193,11 +235,15 @@ namespace ToDo.Persistence.Migrations
             modelBuilder.Entity("ToDo.Domain.Entities.Items.ToDoItems", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("TaskHistories");
                 });
 
             modelBuilder.Entity("ToDo.Domain.Entities.Users.AppUser", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("ToDoItems");
                 });
 #pragma warning restore 612, 618
         }

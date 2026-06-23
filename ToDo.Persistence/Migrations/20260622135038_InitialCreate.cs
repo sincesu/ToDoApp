@@ -99,6 +99,29 @@ namespace ToDo.Persistence.Migrations
                         principalColumn: "id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "TaskHistory",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ToDoItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OldState = table.Column<int>(type: "int", nullable: false),
+                    NewState = table.Column<int>(type: "int", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ChangeByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskHistory", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_TaskHistory_ToDoItems_ToDoItemId",
+                        column: x => x.ToDoItemId,
+                        principalTable: "ToDoItems",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AppUser_name",
                 table: "AppUser",
@@ -124,6 +147,11 @@ namespace ToDo.Persistence.Migrations
                 column: "ToDoItemsId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TaskHistory_ToDoItemId",
+                table: "TaskHistory",
+                column: "ToDoItemId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ToDoItems_AppUserId",
                 table: "ToDoItems",
                 column: "AppUserId");
@@ -139,6 +167,9 @@ namespace ToDo.Persistence.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Comment");
+
+            migrationBuilder.DropTable(
+                name: "TaskHistory");
 
             migrationBuilder.DropTable(
                 name: "ToDoItems");

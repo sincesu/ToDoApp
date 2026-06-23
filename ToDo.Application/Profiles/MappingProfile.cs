@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
-using ToDo.Domain.Entities.Users;
-using ToDo.Application.DTOs.User;
-using ToDo.Domain.Entities.Items;
-using ToDo.Application.DTOs.ToDo;
-using ToDo.Domain.Entities.Categories;
 using ToDo.Application.DTOs.Category;
 using ToDo.Application.DTOs.Comment;
+using ToDo.Application.DTOs.History;
+using ToDo.Application.DTOs.ToDo;
+using ToDo.Application.DTOs.User;
+using ToDo.Domain.Entities.Categories;
 using ToDo.Domain.Entities.Comments;
+using ToDo.Domain.Entities.Histories;
+using ToDo.Domain.Entities.Items;
+using ToDo.Domain.Entities.Users;
 
 namespace ToDo.Application.Profiles
 {
@@ -24,6 +26,7 @@ namespace ToDo.Application.Profiles
             CreateMap<Comment, CommentDto>();
             CreateMap<CommentUpdateDto, Comment>();
             CreateMap<AssignTaskDto, ToDoItems>();
+            CreateMap<TaskHistory, TaskHistoryDto>();
             CreateMap<AppUser, UserTasksDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.ToDoItems));
             CreateMap<ToDoUpdateDto, ToDoItems>()
