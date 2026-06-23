@@ -1,15 +1,18 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ToDo.Application.Abstractions;
-using ToDo.Domain.Entities.Items;
-using ToDo.Domain.Entities.Categories;
-using Microsoft.AspNetCore.Http;
-using ToDo.Application.DTOs.ToDo;
 using ToDo.Application.DTOs.Filter;
-using ToDo.Application.Extensions;
+using ToDo.Application.DTOs.History;
+using ToDo.Application.DTOs.ToDo;
 using ToDo.Application.Exceptions;
-using ToDo.Domain.Enums;
+using ToDo.Application.Extensions;
+using ToDo.Domain.Entities.Categories;
 using ToDo.Domain.Entities.Comments;
+using ToDo.Domain.Entities.Histories;
+using ToDo.Domain.Entities.Items;
+using ToDo.Domain.Entities.Users;
+using ToDo.Domain.Enums;
 
 namespace ToDo.Application.Services.ToDo
 {
@@ -20,7 +23,8 @@ namespace ToDo.Application.Services.ToDo
         private readonly IToDoRepository _toDoRepository;
         private readonly IGenericRepository<Category> _category;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IAppUserService _appUserService;
+        private readonly IGenericRepository<AppUser> _appUserRepository;
+        private readonly IGenericRepository<TaskHistory> _taskHistoryRepository;
 
         private readonly IGenericRepository<Comment> _commentRepository; 
 
@@ -31,7 +35,8 @@ namespace ToDo.Application.Services.ToDo
             , IGenericRepository<Category> category
             , IHttpContextAccessor httpContextAccessor
             , IGenericRepository<Comment> commentRepository
-            , IAppUserService appUserService)
+            , IGenericRepository<AppUser> appUserRepository
+            , IGenericRepository<TaskHistory> taskHistoryRepository)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -39,10 +44,11 @@ namespace ToDo.Application.Services.ToDo
             _category = category;
             _httpContextAccessor = httpContextAccessor;
             _commentRepository = commentRepository;
-            _appUserService = appUserService;
+            _appUserRepository = appUserRepository;
+            _taskHistoryRepository = taskHistoryRepository;
         }
 
-        public async Task<IEnumerable<ToDoItemsDto>> GetItemsAsync(ToDoFilterDto? filter) //isadmin ve id kontrolü eklenecek hepsine.
+        public async Task<IEnumerable<ToDoItemsDto>> GetItemsAsync(ToDoFilterDto? filter)
         {
             bool isAdmin = _httpContextAccessor.HttpContext!.User.IsInRole("Admin") == true;
             Guid currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
@@ -85,6 +91,8 @@ namespace ToDo.Application.Services.ToDo
 
         public async Task AssignTask(AssignTaskDto dto)
         {
+            var currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
+
             var task = await _toDoRepository.GetQueryable()
             .Include(x => x.AppUser)
             .FirstOrDefaultAsync(x => x.id == dto.ToDoItemsId);
@@ -92,15 +100,34 @@ namespace ToDo.Application.Services.ToDo
             if (task == null)
                 throw new NotFoundException("Task not found task list");
 
+            //kullanıcıya aynı task üst üste tanımlanamasın.
+            if (task.AppUserId == dto.AssignedToUserId)
+                throw new BadRequestException("The task is already assigned to this user");
+
             // zaten user yoksa appuserservice içinde exception fırlatacak.
-            await _appUserService.GetByUserIdAsync(dto.AssignedToUserId);
+            await _appUserRepository.GetOrThrowAsync(dto.AssignedToUserId);
+
+            var oldState = task.State;
 
             _mapper.Map(dto, task);
            
             task.State = TaskState.InProgress;
             task.AppUserId = dto.AssignedToUserId;
 
+            var history = CreateHistoryLog(task.id, oldState, task.State, currentUserId);
+            await _taskHistoryRepository.AddAsync(history);
             await _unitOfWork.CommitAsync();
+        }
+
+        public async Task<IEnumerable<TaskHistoryDto>> GetTaskHistoriesAsync(Guid id)
+        {
+            var historyList = await _taskHistoryRepository.GetQueryable()
+                .Where(x => x.ToDoItemId == id)
+                .ToListAsync();
+
+            var dtoList = _mapper.Map<IEnumerable<TaskHistoryDto>>(historyList);
+
+            return dtoList;
         }
 
 
@@ -115,8 +142,11 @@ namespace ToDo.Application.Services.ToDo
             toDoEntity.AppUserId = currentUserId;
             
             toDoEntity.createdDate = DateTime.Now;
+            toDoEntity.State = TaskState.Created;
 
             await _toDoRepository.AddAsync(toDoEntity);
+            var history = CreateHistoryLog(toDoEntity.id, TaskState.Created, toDoEntity.State, currentUserId);
+            await _taskHistoryRepository.AddAsync(history);
             await _unitOfWork.CommitAsync();
         }
         
@@ -147,35 +177,44 @@ namespace ToDo.Application.Services.ToDo
 
             var task = await _toDoRepository.GetOrThrowAsync(id);
 
+            if (task.State == item.State)
+                throw new BadRequestException("The task is already in this state!");
+
             if (!isAdmin && task.AppUserId != currentUserId)
                 throw new UnAuthorizedAccessException();
 
             if (!isAdmin && (task.State == TaskState.Cancelled || task.State == TaskState.Inactive || task.State == TaskState.Completed))
                 throw new BadRequestException("The status of a canceled, inactive, or completed task cannot be changed again!");
 
+            if (!isAdmin && item.State != TaskState.ReadyForTest)
+                throw new UnAuthorizedAccessException("Users are only allowed to change task status to Ready_For_Test");
+            
+            var oldState = task.State;
             task.State = item.State;
 
+            var history = CreateHistoryLog(id, oldState, task.State, currentUserId);
+            await _taskHistoryRepository.AddAsync(history);
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task ToMarkAsync(Guid id)
+        public async Task ToMarkForCompletedAsync(Guid id)
         {
             Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
-            bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin") == true;
 
             var item = await _toDoRepository.GetOrThrowAsync(id);
 
-            if (!isAdmin && currentUserId != item.AppUserId)
-                throw new UnauthorizedAccessException();
-
-            item.isCompleted = !item.isCompleted;
+            var oldState = item.State;
 
             item.completedDate = item.isCompleted ? DateTime.Now : null;
 
+            item.State = TaskState.Completed;
+
+            var history = CreateHistoryLog(id, oldState, item.State, currentUserId);
+            await _taskHistoryRepository.AddAsync(history);
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task UpdateAsync(Guid id, ToDoUpdateDto dto)
+        public async Task UpdateAsync(Guid id, ToDoUpdateDto dto) //buna bilerek state'i eklemiyorum çünkü state için ayrı metot var.
         {
             Guid currentUserId = _httpContextAccessor.HttpContext!.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin") == true;
@@ -193,9 +232,10 @@ namespace ToDo.Application.Services.ToDo
             await _unitOfWork.CommitAsync();
         }
         
-        //controller'ında [Authorize(Roles="Admin")] olucak.
-        public async Task DeleteAllCommentsOfTaskAsync(Guid id)
+        public async Task DeleteAllCommentsOfTaskAsync(Guid id, bool savechanges = true)
         {
+            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+
             var task = await _toDoRepository.GetQueryable()
             .Include(x => x.Comments)
             .FirstOrDefaultAsync(x => x.id == id);
@@ -205,58 +245,31 @@ namespace ToDo.Application.Services.ToDo
 
             foreach (var comment in task.Comments)
                 comment.isDeleted = true;
-                //await _commentRepository.UpdateAsync(comment);
+
+            var oldState = task.State;
 
             task.State = TaskState.Inactive;
             task.isDeleted = true;
-            //await _toDoRepository.UpdateAsync(task);
 
-            await _unitOfWork.CommitAsync();
+            var history = CreateHistoryLog(id, oldState, task.State, currentUserId);
+            await _taskHistoryRepository.AddAsync(history);
+            
+            if (savechanges)
+                await _unitOfWork.CommitAsync();
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        private TaskHistory CreateHistoryLog(Guid taskId, TaskState oldState, TaskState newState, Guid userId)
+        {
+            return new TaskHistory
+            {
+                id = Guid.NewGuid(),
+                ToDoItemId = taskId,
+                OldState = oldState,
+                NewState = newState,
+                ChangedAt = DateTime.UtcNow,
+                ChangeByUserId = userId
+            };
+        }
 
     }
 }
-
-        /*public async Task<IEnumerable<ToDoItemsDto>> GetCompletedTasksByCategoryAsync(Guid categoryId)
-        {
-            var listEntity = await _toDoRepository.GetQueryable()
-            .Where(x => x.CategoryId == categoryId && x.isCompleted == false)
-            .ToListAsync();
-
-            var list = _mapper.Map<IEnumerable<ToDoItemsDto>>(listEntity);
-            return list;
-        }*/

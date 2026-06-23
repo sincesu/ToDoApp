@@ -1,15 +1,13 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ToDo.Application.Abstractions;
-using ToDo.Application.Exceptions;
 using ToDo.Application.DTOs.User;
-using Microsoft.AspNetCore.Http;
-using ToDo.Domain.Entities.Users;
+using ToDo.Application.Exceptions;
 using ToDo.Application.Extensions;
-
-using BCryptTool = BCrypt.Net.BCrypt;
-using System.Security.Cryptography;
 using ToDo.Domain.Entities.Comments;
+using ToDo.Domain.Entities.Users;
+using BCryptTool = BCrypt.Net.BCrypt;
 
 namespace ToDo.Application.Services.Users
 {
@@ -19,9 +17,9 @@ namespace ToDo.Application.Services.Users
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericRepository<AppUser> _appUserRepository;
         private readonly IToDoRepository _toDoRepository;
-        private readonly IGenericRepository<Comment> _commentRepository;
         private readonly ITokenService _tokenService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IToDoService _toDoService;
 
         public AppUserService(IUnitOfWork unitOfWork
             , IMapper mapper
@@ -29,7 +27,7 @@ namespace ToDo.Application.Services.Users
             , IToDoRepository toDoRepository
             , ITokenService tokenService
             , IHttpContextAccessor httpContextAccessor
-            , IGenericRepository<Comment> commentRepository)
+            , IToDoService toDoService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -37,7 +35,7 @@ namespace ToDo.Application.Services.Users
             _toDoRepository = toDoRepository;
             _tokenService = tokenService;
             _httpContextAccessor = httpContextAccessor;
-            _commentRepository = commentRepository;
+            _toDoService = toDoService;
         }
             
         public async Task<IEnumerable<AppUserDto>> GetAllUsersAsync()
@@ -49,7 +47,7 @@ namespace ToDo.Application.Services.Users
             return allUsers;
         }
 
-        public async Task<IEnumerable<UserTasksDto>> GetAllTasksAsync()
+        public async Task<IEnumerable<UserTasksDto>> GetAllTasksAsync() //admin tüm taskları görmek için todoservice'e gitsin
         {
             var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
 
@@ -58,7 +56,13 @@ namespace ToDo.Application.Services.Users
                 .Where(x => x.id == currentUserId)
                 .ToListAsync();
 
-            var dtoList = _mapper.Map<IEnumerable<UserTasksDto>>(entityList);
+            var dtoList = _mapper.Map<ICollection<UserTasksDto>>(entityList);
+
+            foreach (var user in dtoList)
+            {
+                foreach (var task in user.Items)
+                    task.AppUser = null;
+            }
 
             return dtoList;
         }
@@ -78,6 +82,7 @@ namespace ToDo.Application.Services.Users
             
             return dto;
         }
+
         public async Task AddUserAsync(AppUserSaveDto dto)
         {
             if (await _appUserRepository.GetQueryable(true)
@@ -148,34 +153,22 @@ namespace ToDo.Application.Services.Users
             await _unitOfWork.CommitAsync();
         }
 
-
         public async Task DeleteAsync(Guid id)
         {
             var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
 
             var user = await _appUserRepository.GetQueryable()
-            .Include(x => x.Comments)
+            .Include(x => x.ToDoItems)
             .FirstOrDefaultAsync(x => x.id == id);
         
             if (user == null)
                 throw new NotFoundException("Böyle bi user yok");
 
-            if (!isAdmin && currentUserId != user.id)
-                throw new UnauthorizedAccessException("Yetkin yok knk");
-
-            var relatedToDos = await _toDoRepository.GetQueryable()
-            .Where(x => x.AppUserId == user.id)
-            .ToListAsync();
-
-            foreach (var todo in relatedToDos)
-                todo.isDeleted = true;
-
-            foreach (var comment in user.Comments)
-                comment.isDeleted = true;
+            foreach (var todo in user.ToDoItems)
+                await _toDoService.DeleteAllCommentsOfTaskAsync(todo.id, false);
 
             user.isDeleted = true;
-            //await _appUserRepository.UpdateAsync(user);
             
             await _unitOfWork.CommitAsync();
         }
