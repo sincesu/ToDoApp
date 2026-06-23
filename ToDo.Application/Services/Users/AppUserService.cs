@@ -63,6 +63,21 @@ namespace ToDo.Application.Services.Users
             return dtoList;
         }
 
+        public async Task<AppUserDto> MyProfile()
+        {
+            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+
+            var entity = await _appUserRepository.GetQueryable()
+                .Include(x => x.ToDoItems)
+                .FirstOrDefaultAsync(x => x.id == currentUserId);
+
+            if (entity == null)
+                throw new NotFoundException("User not found");
+
+            var dto = _mapper.Map<AppUserDto>(entity);
+            
+            return dto;
+        }
         public async Task AddUserAsync(AppUserSaveDto dto)
         {
             if (await _appUserRepository.GetQueryable(true)

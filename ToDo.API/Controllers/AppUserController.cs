@@ -30,6 +30,12 @@ namespace ToDo.API.Controllers
             return Ok(await _appUserService.GetAllTasksAsync());
         }
 
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            return Ok(await _appUserService.MyProfile());
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpPost("adduser")]
         public async Task<IActionResult> AddUserAsync(AppUserSaveDto dto)
