@@ -53,6 +53,18 @@ namespace ToDo.Application.Services.Comments
             return comments;
         }
 
+        public async Task<IEnumerable<CommentDto>> GetAllMyComments()
+        {
+            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+
+            var entity = await _commentRepository.GetQueryable()
+                .Where(x => x.AppUserId == currentUserId)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<CommentDto>>(entity);
+        }
+
+
         public async Task<CommentDto> GetCommentForId(Guid id)
         {
             var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();

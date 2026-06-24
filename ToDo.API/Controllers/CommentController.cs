@@ -23,6 +23,12 @@ namespace ToDo.API.Controllers
             return Ok(await _commentService.GetAllCommentsForTask(taskId));
         }
 
+        [HttpGet("myComments")]
+        public async Task<IActionResult> GetAllMyComments()
+        {
+            return Ok(await _commentService.GetAllMyComments());
+        }
+
         [HttpGet("{id:Guid}")]
         public async Task<IActionResult> GetCommentById(Guid id)
         {
