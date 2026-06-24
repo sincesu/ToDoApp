@@ -6,6 +6,8 @@ namespace ToDo.Application.Abstractions
     {
         Task<IEnumerable<CommentDto>> GetAllCommentsForTask(Guid taskId);
 
+        Task<IEnumerable<CommentDto>> GetAllMyComments();
+
         Task<IEnumerable<CommentDto>> GetCommentsForUser(Guid UserId);
 
         Task <CommentDto> GetCommentForId(Guid id);
