@@ -1,4 +1,5 @@
-﻿using ToDo.Domain.Entities.Categories;
+﻿using Todo.Domain.Entities;
+using ToDo.Domain.Entities.Categories;
 using ToDo.Domain.Entities.Comments;
 using ToDo.Domain.Entities.Common;
 using ToDo.Domain.Entities.Histories;
@@ -32,5 +33,7 @@ namespace ToDo.Domain.Entities.Items
         public ICollection<Comment> Comments { get; set; } = new HashSet<Comment>();
 
         public ICollection<TaskHistory> TaskHistories { get; set; } = new HashSet<TaskHistory>();
+
+        public ICollection<FileAttachment> Attachments { get; set; } = new HashSet<FileAttachment>();
     }
 }

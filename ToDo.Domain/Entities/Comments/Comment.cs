@@ -1,4 +1,5 @@
-﻿using ToDo.Domain.Entities.Common;
+﻿using Todo.Domain.Entities;
+using ToDo.Domain.Entities.Common;
 using ToDo.Domain.Entities.Items;
 using ToDo.Domain.Entities.Users;
 
@@ -15,9 +16,12 @@ namespace ToDo.Domain.Entities.Comments
 
         public required ToDoItems ToDoItems { get; set; }
 
-        
+
         public Guid AppUserId { get; set; }
 
         public required AppUser AppUser { get; set; }
+
+        public ICollection<FileAttachment> Attachments { get; set; } = new HashSet<FileAttachment>();
+
     }
 }

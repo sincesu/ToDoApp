@@ -4,6 +4,7 @@ using ToDo.Domain.Entities.Users;
 using ToDo.Domain.Entities.Categories;
 using ToDo.Domain.Entities.Comments;
 using ToDo.Domain.Entities.Histories;
+using Todo.Domain.Entities;
 
 namespace ToDo.Persistence
 {
@@ -24,26 +25,54 @@ namespace ToDo.Persistence
 
         public DbSet<TaskHistory> TaskHistory { get; set; }
 
+        public DbSet<FileAttachment> Attachment { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            //Global Query Filters
 
             modelBuilder.Entity<ToDoItems>().HasQueryFilter(x => x.isDeleted == false);
             modelBuilder.Entity<Category>().HasQueryFilter(x => x.isDeleted == false);
             modelBuilder.Entity<AppUser>().HasQueryFilter(x => x.isDeleted == false);
             modelBuilder.Entity<TaskHistory>().HasQueryFilter(x => !x.isDeleted);
-            modelBuilder.Entity<Comment>()
+
+            modelBuilder.Entity<FileAttachment>()
             .HasQueryFilter(x =>
-                !x.isDeleted 
-                && !x.AppUser.isDeleted 
-                && !x.ToDoItems.isDeleted
+                !x.isDeleted
+                && (x.ToDoItem == null || !x.ToDoItem.isDeleted)
+                && (x.Comment == null || !x.Comment.isDeleted)
             );
+
+            modelBuilder.Entity<Comment>()
+           .HasQueryFilter(x =>
+               !x.isDeleted
+               && !x.AppUser.isDeleted
+               && !x.ToDoItems.isDeleted
+           );
+
+            //Multiple Cascade Paths
+
+            modelBuilder.Entity<FileAttachment>()
+                .HasOne(a => a.ToDoItem)
+                .WithMany(t => t.Attachments)
+                .HasForeignKey(a => a.ToDoItemId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FileAttachment>()
+                .HasOne(a => a.Comment)
+                .WithMany(c => c.Attachments)
+                .HasForeignKey(a => a.CommentId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Comment>()
             .HasOne(c => c.ToDoItems)
             .WithMany(t => t.Comments)
             .HasForeignKey(c => c.ToDoItemsId)
             .OnDelete(DeleteBehavior.NoAction);
+
+            //Index Configuration
 
             modelBuilder.Entity<AppUser>()
                 .HasIndex(u => u.name)
