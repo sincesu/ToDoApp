@@ -13,6 +13,7 @@ using ToDo.Domain.Entities.Histories;
 using ToDo.Domain.Entities.Items;
 using ToDo.Domain.Entities.Users;
 using ToDo.Domain.Enums;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ToDo.Application.Services.ToDo
 {
@@ -222,7 +223,7 @@ namespace ToDo.Application.Services.ToDo
             var item = await _toDoRepository.GetOrThrowAsync(id);
 
             if (!isAdmin && item.AppUserId != currentUserId)
-                throw new UnauthorizedAccessException();
+                throw new UnAuthorizedAccessException($"You are not authorized to update task with id {id}");
 
             if (dto.CategoryId.HasValue)
                 await _category.GetOrThrowAsync(dto.CategoryId.Value);
@@ -238,10 +239,8 @@ namespace ToDo.Application.Services.ToDo
 
             var task = await _toDoRepository.GetQueryable()
             .Include(x => x.Comments)
-            .FirstOrDefaultAsync(x => x.id == id);
-
-            if (task == null)
-                throw new NotFoundException("Böyle bi task yok");
+            .FirstOrDefaultAsync(x => x.id == id)
+                ?? throw new NotFoundException("Task not found task list");
 
             foreach (var comment in task.Comments)
                 comment.isDeleted = true;

@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using ToDo.Application.Exceptions;
 
 namespace ToDo.Application.Extensions
 {
@@ -9,7 +10,7 @@ namespace ToDo.Application.Extensions
             var userIdString = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdString))
-                throw new UnauthorizedAccessException("No valid user ID was found in this request");
+                throw new UnAuthorizedAccessException("No valid user ID was found in this request");
 
             return Guid.Parse(userIdString);
         }

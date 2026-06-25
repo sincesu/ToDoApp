@@ -46,7 +46,7 @@ namespace ToDo.Application.Services.Comments
             var commentsEntity = await query.ToListAsync();
 
             if (commentsEntity == null || !commentsEntity.Any())
-                throw new NotFoundException($"Task wtih id {taskId} not found or you have no access to its comments");
+                throw new NotFoundException($"Task with id {taskId} not found or you have no access to its comments");
 
             var comments = _mapper.Map<IEnumerable<CommentDto>>(commentsEntity);
 
@@ -148,7 +148,7 @@ namespace ToDo.Application.Services.Comments
                 throw new NotFoundException($"Comment with id {id} not found");
 
             if (!isAdmin && comment.AppUserId != currentUserId)
-                throw new UnauthorizedAccessException("Bu yorumu güncellemeye yetkin yok");
+                throw new UnAuthorizedAccessException($"You are not authorized to access comment with id {id}");
             
             _mapper.Map(dto, comment);
             comment.dateTime = DateTime.UtcNow;
@@ -174,7 +174,7 @@ namespace ToDo.Application.Services.Comments
                 bool isTaskOwner = comment.ToDoItems.AppUserId == currentUserId;
 
                 if (!isCommentOwner && !isTaskOwner)
-                    throw new UnAuthorizedAccessException("Bu yorumu silme yetkin yok");
+                    throw new UnAuthorizedAccessException($"You are not authorized to delete comment with id {id}");
             }
 
             comment.isDeleted = true;
@@ -183,66 +183,3 @@ namespace ToDo.Application.Services.Comments
         }
     }
 }
-        
-        
-        /*public async Task<int> GetCommentCountByCategoryId(Guid categoryId)
-        {
-            var commentCount = await _commentRepository.GetQueryable()
-            .Where(x => x.ToDoItems.CategoryId == categoryId)
-            .CountAsync();
-
-            return commentCount;
-        }*/
-
-
-        /*public async Task<IEnumerable<CommentDto>> GetCommentsByUserRoleAsync(string role)
-        {
-            var listEntity = await _commentRepository.GetQueryable()
-            .Where(x => x.AppUser.role == role)
-            .ToListAsync();
-
-            var list = _mapper.Map<IEnumerable<CommentDto>>(listEntity);
-            return list;
-        }*/
-
-        /*public async Task PinCommentAsync(Guid id)
-        {
-            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
-
-            var comment = await _commentRepository.GetQueryable()
-            .Include(x => x.ToDoItems)
-            .FirstOrDefaultAsync(x => x.id == id);
-            
-            if (comment == null)
-                throw new NotFoundException($"Comment with id {id} not found");
-
-            if (comment.ToDoItems.AppUserId != currentUserId)
-                throw new UnAuthorizedAccessException("Yetkin yok");
-
-            comment.IsPinned = !comment.IsPinned;
-            await _commentRepository.UpdateAsync(comment);
-            await _unitOfWork.CommitAsync();
-        }*/   
-
-        /*public async Task<IEnumerable<CommentDto>> GetLatestCommentsAsync()
-        {
-            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
-            bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
-
-            if (isAdmin)
-            {
-                var lastAllComments = await _commentRepository.GetQueryable()
-                .OrderByDescending(x => x.dateTime)
-                .Take(5)
-                .ToListAsync();
-
-                return _mapper.Map<IEnumerable<CommentDto>>(lastAllComments);
-            }
-                var lastComments = await _commentRepository.GetQueryable()
-                .Where(x => x.ToDoItems.AppUserId == currentUserId)
-                .OrderByDescending(x => x.dateTime)
-                .Take(5)
-                .ToListAsync();
-
-            return _mapper.Map<IEnumerable<CommentDto>>(lastComments);
-        }*/

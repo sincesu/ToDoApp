@@ -138,7 +138,7 @@ namespace ToDo.Application.Services.Users
             var item = await _appUserRepository.GetOrThrowAsync(id);
 
             if (isAdmin == false && currentUserId != item.id)
-                throw new UnauthorizedAccessException();
+                throw new UnAuthorizedAccessException();
 
             //İsmi eşleşen ama ID'si GÜNCELLENEN KİŞİ OLMAYAN başka biri var mı
             if (await _appUserRepository.GetQueryable(true)
@@ -163,7 +163,7 @@ namespace ToDo.Application.Services.Users
             .FirstOrDefaultAsync(x => x.id == id);
         
             if (user == null)
-                throw new NotFoundException("Böyle bi user yok");
+                throw new NotFoundException("User not found");
 
             foreach (var todo in user.ToDoItems)
                 await _toDoService.DeleteAllCommentsOfTaskAsync(todo.id, false);
