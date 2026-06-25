@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Todo.Domain.Entities;
+using ToDo.Application.DTOs.Attachment;
 using ToDo.Application.DTOs.Category;
 using ToDo.Application.DTOs.Comment;
 using ToDo.Application.DTOs.History;
@@ -26,6 +28,7 @@ namespace ToDo.Application.Profiles
             CreateMap<Comment, CommentDto>();
             CreateMap<CommentUpdateDto, Comment>();
             CreateMap<AssignTaskDto, ToDoItems>();
+            CreateMap<FileAttachment, AttachmentDto>();
             CreateMap<TaskHistory, TaskHistoryDto>();
             CreateMap<AppUser, UserTasksDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.ToDoItems));
