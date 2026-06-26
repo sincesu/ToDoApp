@@ -95,7 +95,7 @@ namespace ToDo.Application.Services.Attachments
             if (!isAdmin)
             {
                 if (attachment.ToDoItemId != null) //ek taska aitse direk hata
-                    throw new UnAuthorizedAccessException("Bu eki silmeye yetkin yok");
+                    throw new UnAuthorizedAccessException("You do not have permission to delete this attachment");
 
                 if (attachment.CommentId != null)
                 {

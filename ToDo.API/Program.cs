@@ -5,6 +5,7 @@ using ToDo.API.Extensions;
 using ToDo.API.Middlewares;
 using ToDo.Application.Abstractions;
 using ToDo.Application.Profiles;
+using ToDo.Application.Services.Attachments;
 using ToDo.Application.Services.Categories;
 using ToDo.Application.Services.Comments;
 using ToDo.Application.Services.ToDo;
@@ -54,6 +55,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAppUserService, AppUserService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+builder.Services.AddScoped<IStorageService, LocalStorageService>();
 
 //authentication
 builder.Services.AddJwtAuthentication(builder.Configuration);
