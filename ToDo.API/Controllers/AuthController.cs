@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ToDo.API.Filters;
 using ToDo.Application.Abstractions;
+using ToDo.Application.DTOs.Auth;
 using ToDo.Application.DTOs.User;
 
 namespace ToDo.API.Controllers
@@ -9,18 +11,18 @@ namespace ToDo.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAppUserService _appUserService;
+        private readonly IAuthService _authService;
 
-        public AuthController(IAppUserService appUserService)
+        public AuthController(IAuthService authService)
         {
-            _appUserService = appUserService;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         [GuestOnly]
         public async Task<IActionResult> RegisterAsync(AppUserSaveDto dto)
         {
-            await _appUserService.AddUserAsync(dto);
+            await _authService.RegisterAsync(dto);
             return StatusCode(201, $"{dto.name} succesfully registered");
         }
 
@@ -28,8 +30,24 @@ namespace ToDo.API.Controllers
         [GuestOnly]
         public async Task<IActionResult> LoginAsync(LoginDto dto)
         {
-            var tokenString = await _appUserService.LoginAsync(dto);
+            var tokenString = await _authService.LoginAsync(dto);
             return Ok(new { token = tokenString });
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshTokenController(RefreshTokenDto dto)
+        {
+            var tokenString = await _authService.RefreshTokenLoginAsync(dto);
+            return Ok(new { token =  tokenString });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("adduser")]
+        public async Task<IActionResult> AddUserAsync(AppUserSaveDto dto)
+        {
+            await _authService.RegisterAsync(dto);
+            return StatusCode(201, $"{dto.name} has been created");
+        }
+
     }
 }

@@ -16,7 +16,6 @@ namespace ToDo.Application.Services.Users
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericRepository<AppUser> _appUserRepository;
-        private readonly IToDoRepository _toDoRepository;
         private readonly ITokenService _tokenService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IToDoService _toDoService;
@@ -24,7 +23,6 @@ namespace ToDo.Application.Services.Users
         public AppUserService(IUnitOfWork unitOfWork
             , IMapper mapper
             , IGenericRepository<AppUser> appUserRepository
-            , IToDoRepository toDoRepository
             , ITokenService tokenService
             , IHttpContextAccessor httpContextAccessor
             , IToDoService toDoService)
@@ -32,7 +30,6 @@ namespace ToDo.Application.Services.Users
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _appUserRepository = appUserRepository;
-            _toDoRepository = toDoRepository;
             _tokenService = tokenService;
             _httpContextAccessor = httpContextAccessor;
             _toDoService = toDoService;
@@ -82,45 +79,6 @@ namespace ToDo.Application.Services.Users
             
             return dto;
         }
-
-        public async Task AddUserAsync(AppUserSaveDto dto)
-        {
-            if (await _appUserRepository.GetQueryable(true)
-                .AnyAsync(x => x.name == dto.name))
-                throw new OverlapException("That username is already in use, choose a different username");
-
-            string hashedPassword = BCryptTool.HashPassword(dto.password);
-            var entity = _mapper.Map<AppUser>(dto);
-
-            entity.isDeleted = false;
-            entity.role = "User";
-            entity.password = hashedPassword;
-
-            await _appUserRepository.AddAsync(entity);
-            await _unitOfWork.CommitAsync();
-        }
-
-        public async Task<string> LoginAsync(LoginDto dto)
-        {
-            var user = await _appUserRepository.GetQueryable(true)
-                .FirstOrDefaultAsync(x => x.name == dto.name);
-            //firstordefaultasync metotu büyük/küçük harf dikkat etmez
-            if (user == null)
-                throw new NotFoundException("Username or password incorrect");
-
-            if (user.name != dto.name) // büyük/küçük harf hassasiyeti için
-                throw new NotFoundException("Username or password incorrect");
-
-            bool isPasswordValid = BCryptTool.Verify(dto.password, user.password);
-
-            if (isPasswordValid == false)
-                throw new NotFoundException("Username or password incorrect");
-
-            var tokenString = _tokenService.CreateToken(user);
-
-            return tokenString;
-        }
-
         public async Task<AppUserDto> GetByUserIdAsync(Guid id)
         {
             var entity = await _appUserRepository.GetOrThrowAsync(id);

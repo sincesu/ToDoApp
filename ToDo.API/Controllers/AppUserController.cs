@@ -37,14 +37,6 @@ namespace ToDo.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("adduser")]
-        public async Task<IActionResult> AddUserAsync(AppUserSaveDto dto)
-        {
-            await _appUserService.AddUserAsync(dto);
-            return StatusCode(201, $"{dto.name} has been created");
-        }
-
-        [Authorize(Roles = "Admin")]
         [HttpGet("{id:Guid}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {

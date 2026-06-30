@@ -10,10 +10,6 @@ namespace ToDo.Application.Abstractions
 
         public Task<AppUserDto> MyProfile();
 
-        public Task AddUserAsync(AppUserSaveDto dto);
-
-        public Task<string> LoginAsync(LoginDto dto);
-
         public Task<AppUserDto> GetByUserIdAsync(Guid id);
 
         public Task UpdateAsync(Guid id, AppUserUpdateDto dto);
