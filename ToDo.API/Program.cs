@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Serilog.Events;
 using ToDo.API.Extensions;
 using ToDo.API.Middlewares;
 using ToDo.Application.Abstractions;
@@ -19,9 +20,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 //SERILOG YAPILANDIRMASI
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Warning() //sadece warning, error ve critical seviyelerini yazar dosyaya
-    .WriteTo.Console() //terminal ekranına bas
-    .WriteTo.File("Logs/todo-log-.txt", rollingInterval: RollingInterval.Day) //Günlüx .txt dosyası oluşturma
+    .MinimumLevel.Information() // Senin yazdığın tüm Information loglarını göster
+
+    // Microsoft'un ıvır zıvır HTTP istek loglarını sustur
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+
+    // Veritabanına atılan o uzun SELECT/UPDATE sorgularını (EF Core loglarını) sustur
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+
+    // System loglarını sustur
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+
+    .WriteTo.Console()
+    .WriteTo.File("Logs/todo-log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog(); //projedeki varsayılan logger yerine serilog'u mühürleme

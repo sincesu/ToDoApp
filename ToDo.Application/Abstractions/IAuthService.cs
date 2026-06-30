@@ -9,6 +9,8 @@ namespace ToDo.Application.Abstractions
 
         public Task<TokenResponseDto> LoginAsync(LoginDto dto);
 
+        public Task LogoutAsync();
+
         public Task<TokenResponseDto> RefreshTokenLoginAsync(RefreshTokenDto dto);
     }
 }

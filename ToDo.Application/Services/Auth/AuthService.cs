@@ -6,6 +6,9 @@ using ToDo.Application.Exceptions;
 using ToDo.Domain.Entities.Users;
 using ToDo.Application.DTOs.Auth;
 using BCryptTool = BCrypt.Net.BCrypt;
+using Microsoft.AspNetCore.Http;
+using ToDo.Application.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace ToDo.Application.Services.Auth
 {
@@ -15,16 +18,22 @@ namespace ToDo.Application.Services.Auth
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITokenService _tokenService;
         private readonly IGenericRepository<AppUser> _appUserRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService( IMapper mapper
+        public AuthService(IMapper mapper
             , IUnitOfWork unitOfWork
             , ITokenService tokenService
-            , IGenericRepository<AppUser> appUserRepository)
+            , IGenericRepository<AppUser> appUserRepository
+            , IHttpContextAccessor httpContextAccessor
+            , ILogger<AuthService> logger)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _tokenService = tokenService;
             _appUserRepository = appUserRepository;
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         public async Task RegisterAsync(AppUserSaveDto dto)
@@ -65,6 +74,8 @@ namespace ToDo.Application.Services.Auth
 
             await _unitOfWork.CommitAsync();
 
+            _logger.LogInformation("The user logged in: {UserName} | Time: {Time}", user.name, DateTime.Now);
+
             return new TokenResponseDto
             {
                 AccessToken = JwtToken,
@@ -83,7 +94,7 @@ namespace ToDo.Application.Services.Auth
 
             var JwtToken = _tokenService.CreateToken(user);
             var RefreshToken = _tokenService.CreateRefreshToken();
-            
+
             user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
             user.RefreshToken = RefreshToken;
 
@@ -93,6 +104,22 @@ namespace ToDo.Application.Services.Auth
                 AccessToken = JwtToken,
                 RefreshToken = RefreshToken,
             };
+        }
+
+        public async Task LogoutAsync()
+        {
+            var currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+
+            var user = await _appUserRepository.GetQueryable()
+                .FirstOrDefaultAsync(x => x.id == currentUserId)
+                ?? throw new NotFoundException("User not found");
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+
+            await _unitOfWork.CommitAsync();
+
+            _logger.LogInformation("The user has logged out: {UserName} | Time: {Time}", user.name, DateTime.Now);
         }
     }
 }

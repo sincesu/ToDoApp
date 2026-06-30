@@ -34,6 +34,14 @@ namespace ToDo.API.Controllers
             return Ok(new { token = tokenString });
         }
 
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> LogoutAsync()
+        {
+            await _authService.LogoutAsync();
+            return Ok();
+        }
+
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshTokenController(RefreshTokenDto dto)
         {
