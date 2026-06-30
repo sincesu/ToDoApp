@@ -265,7 +265,7 @@ namespace ToDo.Application.Services.ToDo
                 ToDoItemId = taskId,
                 OldState = oldState,
                 NewState = newState,
-                ChangedAt = DateTime.UtcNow,
+                ChangedAt = DateTime.Now,
                 ChangeByUserId = userId
             };
         }

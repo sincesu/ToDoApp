@@ -130,7 +130,7 @@ namespace ToDo.Application.Services.Comments
 
             var entity = _mapper.Map<Comment>(dto);
             entity.AppUserId = currentUserId; //dto'da olmadığı için elle yapıyoruz.
-            entity.dateTime = DateTime.UtcNow;
+            entity.dateTime = DateTime.Now;
 
             await _commentRepository.AddAsync(entity);
             await _unitOfWork.CommitAsync();
@@ -151,7 +151,7 @@ namespace ToDo.Application.Services.Comments
                 throw new UnAuthorizedAccessException($"You are not authorized to access comment with id {id}");
             
             _mapper.Map(dto, comment);
-            comment.dateTime = DateTime.UtcNow;
+            comment.dateTime = DateTime.Now;
 
             await _unitOfWork.CommitAsync();
         }

@@ -69,7 +69,7 @@ namespace ToDo.Infrastructure
                 issuer: _configuration["JwtOptions:Issuer"], // Bu kimliği kim üretti? 
                 audience: _configuration["JwtOptions:Audience"], // Bu kimlik nerede geçerli?
                 claims: claims, // Üzerinde yazan bilgiler
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["JwtOptions:ExpireMinutes"])), // Kimliğin son kullanma tarihi 
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["JwtOptions:ExpireMinutes"])), // Kimliğin son kullanma tarihi 
                 signingCredentials: creds
             );
 
