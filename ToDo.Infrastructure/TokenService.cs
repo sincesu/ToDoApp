@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using ToDo.Application.Abstractions;
 using ToDo.Application.Exceptions;
@@ -16,6 +17,20 @@ namespace ToDo.Infrastructure
         public TokenService(IConfiguration configuration)
         {
             _configuration = configuration;
+        }
+
+        // Rastgele, tahmin edilemez bir Refresh Token dizesi üreten metot
+        public string CreateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+
+            // İşletim sisteminin donanımsal kriptografi motorunu çağırıyoruz
+            using (var rng = RandomNumberGenerator.Create())
+                // Boş kabımızı tamamen rastgele ve güvenli byte'larla dolduruyoruz
+                rng.GetBytes(randomNumber);
+
+            // Elde ettiğimiz bu byte dizisini, taşınabilir upuzun bir string'e çevirip dönüyoruz
+            return Convert.ToBase64String(randomNumber);
         }
 
         //Kullanıcı login olduğunda eline vereceğimiz o dijital kimlik karıtnı (Token) üreten metot

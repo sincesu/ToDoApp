@@ -14,6 +14,10 @@ namespace ToDo.Domain.Entities.Users
 
         public string email { get; set; } = string.Empty;
 
+        public string? RefreshToken { get; set; }
+
+        public DateTime? RefreshTokenExpiryTime { get; set; }
+
         public ICollection<Comment> Comments { get; set; } = new HashSet<Comment>();
 
         public ICollection<ToDoItems> ToDoItems { get; set; } = new HashSet<ToDoItems>();
