@@ -42,7 +42,7 @@ namespace ToDo.API.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddComment(CommentSaveDto dto)
+        public async Task<IActionResult> AddComment([FromForm] CommentSaveDto dto)
         {
             await _commentService.AddComment(dto);
             return StatusCode(201, "Comment has been created");

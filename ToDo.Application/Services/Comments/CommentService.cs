@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
+using Todo.Domain.Entities;
 using ToDo.Application.Abstractions;
 using ToDo.Application.DTOs.Comment;
 using ToDo.Application.Exceptions;
@@ -30,20 +32,21 @@ namespace ToDo.Application.Services.Comments
             _commentRepository = commentRepository;
             _toDoRepository = toDoRepository;
         }
-
-
         public async Task<IEnumerable<CommentDto>> GetAllCommentsForTask(Guid taskId)
         {
             Guid userId = _httpContextAccessor.HttpContext.User.GetUserId();
             bool isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
 
             var query = _commentRepository.GetQueryable(true)
+            .Include(x => x.Attachments)
             .Where(x => x.ToDoItemsId == taskId);
 
             if (!isAdmin)
                 query = query.Where(x => x.ToDoItems.AppUserId == userId);
 
-            var commentsEntity = await query.ToListAsync();
+            var commentsEntity = await query
+                .Include(x => x.Attachments)
+                .ToListAsync();
 
             if (commentsEntity == null || !commentsEntity.Any())
                 throw new NotFoundException($"Task with id {taskId} not found or you have no access to its comments");
@@ -132,6 +135,16 @@ namespace ToDo.Application.Services.Comments
             entity.AppUserId = currentUserId; //dto'da olmadığı için elle yapıyoruz.
             entity.dateTime = DateTime.Now;
 
+            if (dto.File != null && dto.File.Length > 0)
+            {
+                var newAttachment = new FileAttachment
+                {
+                    CommentId = entity.id,
+                    filePath = dto.File.FileName,
+                    UploadedAt = DateTime.Now
+                };
+
+            }
             await _commentRepository.AddAsync(entity);
             await _unitOfWork.CommitAsync();
         }

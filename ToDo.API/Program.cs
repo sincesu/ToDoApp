@@ -39,6 +39,13 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog(); //projedeki varsayılan logger yerine serilog'u mühürleme
 builder.Services.AddCustomControllers();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
+
 builder.Services.ConfigureOptions<ConfigureApiBehaviorOptions>();
 builder.Services.AddValidatorsFromAssemblyContaining
     <ToDo.Application.Validators.ToDoItemsSaveDtoValidator>();
@@ -93,6 +100,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
@@ -102,6 +110,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 

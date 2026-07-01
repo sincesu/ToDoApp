@@ -75,6 +75,7 @@ namespace ToDo.Application.Services.ToDo
             Guid currentUserId = _httpContextAccessor.HttpContext.User.GetUserId();
 
             var query = _toDoRepository.GetQueryable(true)
+                .Include(x => x.Attachments)
                 .Where(x => x.id == id);
 
             if (isAdmin)

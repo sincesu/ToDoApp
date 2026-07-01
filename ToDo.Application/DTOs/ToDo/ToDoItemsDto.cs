@@ -1,4 +1,5 @@
-﻿using ToDo.Application.DTOs.Category;
+﻿using ToDo.Application.DTOs.Attachment;
+using ToDo.Application.DTOs.Category;
 using ToDo.Application.DTOs.User;
 using ToDo.Domain.Enums;
 
@@ -21,5 +22,7 @@ namespace ToDo.Application.DTOs.ToDo
         public CategoryDto? Category { get; set; }
 
         public AppUserDto? AppUser {  get; set; }
+
+        public IEnumerable<AttachmentDto> Attachments { get; set; } = new HashSet<AttachmentDto>();
     }
 }

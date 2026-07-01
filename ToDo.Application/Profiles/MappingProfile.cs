@@ -25,10 +25,12 @@ namespace ToDo.Application.Profiles
             CreateMap<AppUser, AppUserDto>();
             CreateMap<AppUserSaveDto, AppUser>();
             CreateMap<CommentSaveDto, Comment>();
-            CreateMap<Comment, CommentDto>();
+            CreateMap<Comment, CommentDto>()
+            .ForMember(dest => dest.userName, opt => opt.MapFrom(src => src.AppUser.name))
+            .ForMember(dest => dest.Attachments, opt => opt.MapFrom(src => src.Attachments));
             CreateMap<CommentUpdateDto, Comment>();
             CreateMap<AssignTaskDto, ToDoItems>();
-            CreateMap<FileAttachment, AttachmentDto>();
+            CreateMap<FileAttachment, AttachmentDto>().ReverseMap();
             CreateMap<TaskHistory, TaskHistoryDto>();
             CreateMap<AppUser, UserTasksDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.ToDoItems));

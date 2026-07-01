@@ -30,8 +30,8 @@ namespace ToDo.API.Controllers
         [GuestOnly]
         public async Task<IActionResult> LoginAsync(LoginDto dto)
         {
-            var tokenString = await _authService.LoginAsync(dto);
-            return Ok(new { token = tokenString });
+            var tokenResponse = await _authService.LoginAsync(dto);
+            return Ok(tokenResponse);
         }
 
         [HttpPost("logout")]
@@ -45,8 +45,8 @@ namespace ToDo.API.Controllers
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshTokenController(RefreshTokenDto dto)
         {
-            var tokenString = await _authService.RefreshTokenLoginAsync(dto);
-            return Ok(new { token =  tokenString });
+            var tokenResponse = await _authService.RefreshTokenLoginAsync(dto);
+            return Ok(tokenResponse);
         }
 
         [Authorize(Roles = "Admin")]
